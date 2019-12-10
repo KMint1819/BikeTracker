@@ -4,12 +4,12 @@ A little module for tracking objects(assuming bicycles) and prevent them from be
 ## Sending format:
 
 - Arduino data:
-"<Device>,<YYYY>:<MM>:<DD>:<hh>:<mm>:<ss>,<latitude>,<longitude>,<Moved>"
+"`Device`,`YYYY`:`MM`:`DD`:`hh`:`mm`:`ss`,`latitude`,`longitude`,`Moved`"
     - `Device`: Type of device. (Options are "ARDUINO" and "PHONE", "SERVER")
     - `Moved`: Whether the device is moved. (Options are "1" for true and "0" for false.)
     - Format of `longitude`, `latitude` is still unknown
 - Phone request:
-"<Device>,<YYYY>:<MM>:<DD>:<hh>:<mm>:<ss>,<Request type>"
+"`Device`,`YYYY`:`MM`:`DD`:`hh`:`mm`:`ss`,`Request type`"
     - `Device`: Type of device. (Options are "ARDUINO", "PHONE", "SERVER")
     - `Request type`: Type of request. (Options are "GET", "START", "STOP")
 - Split with commas
