@@ -45,13 +45,6 @@ A little module for tracking objects(assuming bicycles) and prevent them from be
         - `year` is 4 digit.
         - `hour` is 24-hour clock. 
 - See examples in `common/examples/format`
-- Examples:
-    - Phone -> Server:
-        "PHONE,1999:07:11:10:37:24,GET"
-    - Arduino -> Server:
-        "ARDUINO,1999:07:11:10:37:24,N678924,E343210"
-    - Server -> Phone:
-        "SERVER,1999:07:11:10:37:24,N678924,E343210,1"
     
 ## Notes:
 - 緯度是latitude, 經度是longitude
