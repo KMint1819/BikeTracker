@@ -4,4 +4,6 @@
     <string name="tab_history">History</string>
     <string name="btn_clear">CLEAR</string>
     <string name="text_area">Initial\n---------------\n</string>
+    <!-- main   -->
+    <string name="default_ip">192.168.66.103</string>
 </resources>

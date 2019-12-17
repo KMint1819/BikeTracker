@@ -106,6 +106,7 @@ def main():
     while True:
         print('-'*50)
         client_skt, adr = s.accept()
+        print(f'{adr} is connected...')
         rcv_json = json.loads(client_skt.recv(2048).decode('utf-8'))
         if rcv_json['device'] not in {'ARDUINO', 'PHONE'}:
             print('Format error! Check the documentation.')
