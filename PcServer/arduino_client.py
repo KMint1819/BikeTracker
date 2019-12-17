@@ -4,6 +4,8 @@ Simple client for testing server
 
 import socket
 import sys
+import json
+import common
 
 SERVER_IP = '192.168.66.105'
 if len(sys.argv) > 1:
@@ -28,10 +30,14 @@ def main():
             s.connect((SERVER_IP, PORT))
         except socket.error:
             print('Socket error!')
-
-        msg = f'{DEVICE},{SEND_TIME},{LATITUDE},{LONGITUDE}'
-        s.send(msg.encode())
-
+        position = {}
+        position['longitude'] = LONGITUDE
+        position['latitude'] = LATITUDE
+        msg = common.get_initial_msg('ARDUINO')
+        msg['position'] = position
+        
+        print(f'Sending {json.dumps(msg).encode()}')
+        s.send(json.dumps(msg).encode())
         input('Press ENTER to send again...')
 
 

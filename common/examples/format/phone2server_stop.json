@@ -1,0 +1,12 @@
+{
+    "device": "PHONE",
+    "time": {
+        "year": 1999,
+        "month": 7,
+        "day": 11,
+        "hour": 17,
+        "minute": 54,
+        "second": 36
+    },
+    "request": "STOP"
+}

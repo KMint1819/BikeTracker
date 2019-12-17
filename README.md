@@ -2,17 +2,49 @@
 A little module for tracking objects(assuming bicycles) and prevent them from been stolen.
 
 ## Sending format:
-
 - Arduino data:
-"`Device`,`YYYY`:`MM`:`DD`:`hh`:`mm`:`ss`,`latitude`,`longitude`,`Moved`"
-    - `Device`: Type of device. (Options are "ARDUINO" and "PHONE", "SERVER")
-    - `Moved`: Whether the device is moved. (Options are "1" for true and "0" for false.)
-    - Format of `longitude`, `latitude` is still unknown
+    - ```json=
+        {
+            "device": <Device name>,
+            "time": {
+                "year": <Year>,
+                "month": <Month>,
+                "day": <Day>,
+                "hour": <Hour>,
+                "minute": <Minute>,
+                "second": <Second>
+            },
+            "position": {
+                "longitude": <Longitude>,
+                "latitude": <Latitude>,
+                "moved": <Moved>
+            }
+        }
+      ```
+        - Format of `longitude`, `latitude` is still unknown
+        - `Moved`: Whether the device is moved. (Options are "1" for true and "0" for false.)
+
 - Phone request:
-"`Device`,`YYYY`:`MM`:`DD`:`hh`:`mm`:`ss`,`Request type`"
-    - `Device`: Type of device. (Options are "ARDUINO", "PHONE", "SERVER")
-    - `Request type`: Type of request. (Options are "GET", "START", "STOP")
-- Split with commas
+    - ```json=
+        {
+            "device": <Device name>,
+            "time": {
+                "year": <Year>,
+                "month": <Month>,
+                "day": <Day>,
+                "hour": <Hour>,
+                "minute": <Minute>,
+                "second": <Second>
+            },
+            "request": <Request type>
+        }
+      ```
+        - `request`: Type of request. (Options are "GET", "START", "STOP")
+- Formats:
+    - time:
+        - `year` is 4 digit.
+        - `hour` is 24-hour clock. 
+- See examples in `common/examples/format`
 - Examples:
     - Phone -> Server:
         "PHONE,1999:07:11:10:37:24,GET"

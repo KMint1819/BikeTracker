@@ -4,6 +4,8 @@ Simple client to emulate the phone
 
 import socket
 import sys
+import json
+
 SERVER_IP = '192.168.66.105'
 
 if len(sys.argv) > 1:
@@ -11,23 +13,61 @@ if len(sys.argv) > 1:
 else:
     PORT = 8051
 
-DEVICE = 'PHONE'
-SEND_TIME = '1999:07:11:10:37:24'
-HEADER = f'{DEVICE},{SEND_TIME}'
+START_REQ = """{
+    "device": "PHONE",
+    "time": {
+        "year": 1999,
+        "month": 7,
+        "day": 11,
+        "hour": 17,
+        "minute": 54,
+        "second": 36
+    },
+    "request": "START"
+}"""
+STOP_REQ = """{
+    "device": "PHONE",
+    "time": {
+        "year": 1999,
+        "month": 7,
+        "day": 11,
+        "hour": 17,
+        "minute": 54,
+        "second": 36
+    },
+    "request": "STOP"
+}"""
+GET_REQ = """{
+    "device": "PHONE",
+    "time": {
+        "year": 1999,
+        "month": 7,
+        "day": 11,
+        "hour": 17,
+        "minute": 54,
+        "second": 36
+    },
+    "request": "GET"
+}"""
 
 
 def main():
     '''
     %
     '''
+    get_request = json.loads(GET_REQ)
+    start_request = json.loads(START_REQ)
+    stop_request = json.loads(STOP_REQ)
+
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     activate = False
     input('Press enter to start...')
 
     s.connect((SERVER_IP, PORT))
-    s.send(f'{DEVICE},{SEND_TIME},START'.encode())
+    s.send(json.dumps(get_request).encode())
     print('Sent START to server!')
-    rcv_raw = s.recv(128).decode('utf-8')
+    rcv_raw = s.recv(512).decode('utf-8')
+    rcv_json = json.loads(rcv_raw)
     if rcv_raw.split(',')[-1] == 'OK':
         activate = True
     print('Started sending data!')
@@ -38,7 +78,7 @@ def main():
         try:
             s.send(f'{HEADER},GET'.encode())
             send_time, latitude, longitude, moved = s.recv(
-                256).decode('utf-8').split(',')
+                512).decode('utf-8').split(',')
             print(f'Current position: {latitude}, {longitude}')
             print(f'Moved: {moved}')
         except socket.error():
