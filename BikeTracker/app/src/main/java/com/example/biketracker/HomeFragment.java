@@ -1,6 +1,8 @@
 package com.example.biketracker;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,11 +25,24 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class HomeFragment extends Fragment {
     private static final String TAG = "HomeFragment";
     private TextView textArea = null;
+    private TextView statusBar = null;
     private String ip;
     private int port;
     private Socket socket = null;
@@ -37,11 +52,6 @@ public class HomeFragment extends Fragment {
     HomeFragment(String ip, int port) {
         this.ip = ip;
         this.port = port;
-    }
-
-    public void addInfo(String s) {
-        Log.d(TAG, String.format("Adding <%s> to textArea...", s));
-        textArea.append(s + '\n');
     }
 
     @Override
@@ -58,7 +68,8 @@ public class HomeFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         textArea = view.findViewById(R.id.textArea);
-
+        textArea.setMovementMethod(new ScrollingMovementMethod());
+        statusBar = view.findViewById(R.id.server_status_bar);
         Button btnClear = view.findViewById(R.id.btn_clear);
         btnClear.setOnClickListener(clearListener);
         return view;
@@ -71,10 +82,46 @@ public class HomeFragment extends Fragment {
         }
     };
     private Thread funcThread = new Thread(new Runnable() {
+        @SuppressLint("DefaultLocale")
         @Override
         public void run() {
             connect();
             startRequest();
+            JsonObject rcv_obj;
+            int idx = 0;
+            while (true) {
+                connect();
+                GetRequestExe getRequestExe = new GetRequestExe();
+                Thread t = new Thread(getRequestExe);
+                Thread timer = new Thread(new Timer(1000));
+                t.start();
+                timer.start();
+                while (timer.isAlive()) {
+                    if (!t.isAlive()) {
+                        Log.d(TAG, "Get request finished!");
+                        break;
+                    }
+                }
+                if (t.isAlive()) {
+                    t.interrupt();
+                    timer.interrupt();
+                    Log.d(TAG, "GET request timeout!");
+                    textArea.append("-------TIMEOUT-------\n");
+                    continue;
+                }
+                timer.interrupt();
+                rcv_obj = getRequestExe.getObject();
+                JsonObject position = rcv_obj.getAsJsonObject("position");
+                String longitude = position.get("longitude").toString();
+                String latitude = position.get("latitude").toString();
+                Log.i(TAG, String.format("Longitude: <%s>, latitude: <%s>", longitude, latitude));
+                textArea.append(String.format("%d. (%s, %s)\n", idx++, longitude, latitude));
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     });
 
@@ -88,8 +135,8 @@ public class HomeFragment extends Fragment {
         }
         Log.i(TAG, "Successfully connected!");
         try {
-            reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
-            writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+            reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+            writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
         } catch (IOException e) {
             e.printStackTrace();
 
@@ -116,14 +163,75 @@ public class HomeFragment extends Fragment {
                 e.printStackTrace();
                 continue;
             }
-            break;
+            if (rcv_str != null && !rcv_str.equals("")) {
+                break;
+            }
         }
-        Log.i(TAG, "Received " + rcv_str);
+        Log.i(TAG, "START receives " + rcv_str);
         Objects.requireNonNull(getActivity()).runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                textArea.setText(R.string.server_ready);
+                statusBar.setText(R.string.server_ready);
             }
         });
     }
+
+    private class Timer implements Runnable {
+        int timeout;
+
+        public Timer(int timeout) {
+            this.timeout = timeout;
+        }
+
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(timeout);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private class GetRequestExe implements Runnable {
+        private JsonObject jsonObject = null;
+
+        @Override
+        public void run() {
+            Log.d(TAG, "Sending get request...");
+            try {
+                String request = new Request(RequestType.GET).toJson();
+                Log.i(TAG, "Sending:\n" + request);
+                writer.write(request);
+                writer.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            String rcv_str = "";
+            while (true) {
+                try {
+                    Log.d(TAG, "Receving GET...");
+                    rcv_str = reader.readLine();
+                } catch (IOException e) {
+                    Log.e(TAG, String.format("Received string <%s> error!", rcv_str));
+                    e.printStackTrace();
+                    continue;
+                }
+                if (rcv_str == null || rcv_str.equals("")) {
+                    Log.d(TAG, "Invalid GET response: " + rcv_str);
+                } else {
+                    break;
+                }
+            }
+            Log.d(TAG, "GET Receives " + rcv_str);
+            jsonObject = new Gson().fromJson(rcv_str, JsonObject.class);
+            return;
+        }
+
+        public JsonObject getObject() {
+            return jsonObject;
+        }
+    }
+
+    ;
 }
