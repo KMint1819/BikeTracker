@@ -6,6 +6,6 @@
     <!-- main   -->
     <string name="default_ip">192.168.66.105</string>
     <!--    home fragment-->
-    <string name="server_not_ready">Server not ready…\n---------------\n</string>
+    <string name="server_not_ready">Server not ready…</string>
     <string name="server_ready">Server ready!</string>
 </resources>
