@@ -12,12 +12,12 @@ def get_send_time_json():
     now_time = datetime.now().strftime('%Y:%m:%d:%H:%M:%S')
     now_arr = now_time.split(':')
     now_json = {}
-    now_json['year'] = now_arr[0]
-    now_json['month'] = now_arr[1]
-    now_json['day'] = now_arr[2]
-    now_json['hour'] = now_arr[3]
-    now_json['minute'] = now_arr[4]
-    now_json['second'] = now_arr[5]
+    now_json['year'] = int(now_arr[0])
+    now_json['month'] = int(now_arr[1])
+    now_json['day'] = int(now_arr[2])
+    now_json['hour'] = int(now_arr[3])
+    now_json['minute'] = int(now_arr[4])
+    now_json['second'] = int(now_arr[5])
     return now_json
 
 

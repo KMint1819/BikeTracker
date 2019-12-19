@@ -11,8 +11,19 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.Objects;
 
 public class HomeFragment extends Fragment {
     private static final String TAG = "HomeFragment";
@@ -20,20 +31,24 @@ public class HomeFragment extends Fragment {
     private String ip;
     private int port;
     private Socket socket = null;
-    public HomeFragment(String ip, int port){
+    private BufferedReader reader = null;
+    private BufferedWriter writer = null;
+
+    HomeFragment(String ip, int port) {
         this.ip = ip;
         this.port = port;
     }
+
     public void addInfo(String s) {
         Log.d(TAG, String.format("Adding <%s> to textArea...", s));
         textArea.append(s + '\n');
     }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i(TAG,"Created!");
-        connect();
-
+        Log.i(TAG, "Created!");
+        funcThread.start();
     }
 
     @Nullable
@@ -49,25 +64,66 @@ public class HomeFragment extends Fragment {
         return view;
     }
 
-    View.OnClickListener clearListener = new View.OnClickListener() {
+    private View.OnClickListener clearListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            textArea.setText(R.string.text_area);
+            textArea.setText("");
         }
     };
-    private void connect(){
-        new Thread(new Runnable() {
+    private Thread funcThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            connect();
+            startRequest();
+        }
+    });
+
+    private void connect() {
+        Log.i(TAG, "Connecting to " + ip + ":" + port);
+        try {
+            socket = new Socket(ip, port);
+        } catch (IOException e) {
+            Log.e(TAG, "Cannot connect!");
+            Log.e(TAG, e.toString());
+        }
+        Log.i(TAG, "Successfully connected!");
+        try {
+            reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+            writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        }
+        Log.i(TAG, "IO stream created successfully!");
+    }
+
+    private void startRequest() {
+        Log.i(TAG, "Requesting start request...");
+        try {
+            String request = new Request(RequestType.START).toJson();
+            Log.i(TAG, "Sending:\n" + request);
+            writer.write(request);
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String rcv_str = "";
+        while (true) {
+            try {
+                rcv_str = reader.readLine();
+            } catch (IOException e) {
+                Log.e(TAG, String.format("Received string <%s> error!", rcv_str));
+                e.printStackTrace();
+                continue;
+            }
+            break;
+        }
+        Log.i(TAG, "Received " + rcv_str);
+        Objects.requireNonNull(getActivity()).runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Log.i(TAG, "Connecting to " + ip + ":" + Integer.toString(port));
-                try {
-                    socket = new Socket(ip, port);
-                } catch (IOException e) {
-                    Log.e(TAG, "Cannot connect!");
-                    Log.e(TAG, e.toString());
-                }
+                textArea.setText(R.string.server_ready);
             }
-        }).start();
-        Log.i(TAG, "Successfully connected!");
+        });
     }
 }

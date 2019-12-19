@@ -107,7 +107,19 @@ def main():
         print('-'*50)
         client_skt, adr = s.accept()
         print(f'{adr} is connected...')
-        rcv_json = json.loads(client_skt.recv(2048).decode('utf-8'))
+        rcv_json = None
+        try:
+            rcv_str = client_skt.recv(2048).decode('utf-8')
+            # rcv_str = client_skt.recv(2048)
+            print(f'Client sent: <{rcv_str}>')
+            # print('Removing the first and second character...')
+            # rcv_str = rcv_str[2:]
+            # print(f'Becomes {rcv_str}')
+            rcv_json = json.loads(rcv_str)
+            print(f'To json: \nf{rcv_json}')
+        except json.decoder.JSONDecodeError:
+            print('Format error! Check the documentation.')
+            continue
         if rcv_json['device'] not in {'ARDUINO', 'PHONE'}:
             print('Format error! Check the documentation.')
             continue
@@ -126,14 +138,16 @@ def main():
             if rcv_json['request'] == 'START':
                 print('Receiving START from phone!')
                 msg = common.get_initial_msg('SERVER')
-                client_skt.send(json.dumps(msg).encode())
+                msg_str = json.dumps(msg) + '\n'
+                client_skt.send(msg_str.encode())
             elif rcv_json['request'] == 'GET':
                 print('Receiving GET from phone!')
                 if current_pos is not None:
                     msg = common.get_initial_msg('SERVER')
                     msg['position'] = current_pos.to_json()
+                    msg_str = json.dumps(msg) + '\n'
                     print(f'Sending {json.dumps(msg, indent=4)} to phone...')
-                    client_skt.send(json.dumps(msg).encode())
+                    client_skt.send(msg_str.encode())
         else:
             print('Format error! Check the documentation.')
 

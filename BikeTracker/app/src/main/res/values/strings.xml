@@ -3,7 +3,9 @@
     <string name="tab_home">Home</string>
     <string name="tab_history">History</string>
     <string name="btn_clear">CLEAR</string>
-    <string name="text_area">Initial\n---------------\n</string>
     <!-- main   -->
-    <string name="default_ip">192.168.66.103</string>
+    <string name="default_ip">192.168.66.105</string>
+    <!--    home fragment-->
+    <string name="server_not_ready">Server not ready…\n---------------\n</string>
+    <string name="server_ready">Server ready!</string>
 </resources>
