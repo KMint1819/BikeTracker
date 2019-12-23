@@ -8,7 +8,7 @@ import json
 import random
 import common
 
-SERVER_IP = '10.115.50.31'
+SERVER_IP = '192.168.66.105'
 if len(sys.argv) > 1:
     PORT = int(sys.argv[1])
 else:
@@ -33,10 +33,6 @@ def main():
     '''
     %
     '''
-
-    device = 'ARDUINO'
-    latitude = '27.123456'
-    longitude = '-130.765432'
     while True:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:

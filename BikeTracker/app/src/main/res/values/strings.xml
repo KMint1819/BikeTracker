@@ -9,4 +9,8 @@
     <string name="position">Position: </string>
     <string name="server_not_ready">Server not ready…</string>
     <string name="server_ready">Server ready!</string>
+    <string name="btn_start">Start!</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

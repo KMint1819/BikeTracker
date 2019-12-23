@@ -2,20 +2,21 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <TextView
         android:id="@+id/_position"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/position"
-        android:textSize="@dimen/home_textSize"
-        />
+        android:textSize="@dimen/home_textSize" />
+
     <TextView
-        android:id="@+id/textArea"
-        android:layout_toRightOf="@id/_position"
-        android:layout_toLeftOf="@id/btn_clear"
+        android:id="@+id/txt_position"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/map"
+        android:layout_toStartOf="@id/btn_clear"
+        android:layout_toEndOf="@id/_position"
         android:padding="16dp" />
 
     <Button
@@ -27,11 +28,11 @@
 
     <fragment
         android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/btn_clear"
         android:layout_above="@id/server_status_bar"
-        />
+        android:layout_below="@id/btn_clear" />
 
     <TextView
         android:id="@+id/server_status_bar"
@@ -41,6 +42,14 @@
         android:padding="@dimen/home_padding"
         android:text="@string/server_not_ready"
         android:textSize="13sp" />
+
+    <Button
+        android:id="@+id/btn_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_start"
+        android:layout_alignParentEnd="true"
+        />
 
 
 </RelativeLayout>
