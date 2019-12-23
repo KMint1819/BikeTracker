@@ -14,43 +14,6 @@ if len(sys.argv) > 1:
 else:
     PORT = 8051
 
-START_REQ = """{
-    "device": "PHONE",
-    "time": {
-        "year": 1999,
-        "month": 7,
-        "day": 11,
-        "hour": 17,
-        "minute": 54,
-        "second": 36
-    },
-    "request": "START"
-}"""
-STOP_REQ = """{
-    "device": "PHONE",
-    "time": {
-        "year": 1999,
-        "month": 7,
-        "day": 11,
-        "hour": 17,
-        "minute": 54,
-        "second": 36
-    },
-    "request": "STOP"
-}"""
-GET_REQ = """{
-    "device": "PHONE",
-    "time": {
-        "year": 1999,
-        "month": 7,
-        "day": 11,
-        "hour": 17,
-        "minute": 54,
-        "second": 36
-    },
-    "request": "GET"
-}"""
-
 
 def main():
     '''

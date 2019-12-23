@@ -12,4 +12,6 @@
     <dimen name="main_padding">20sp</dimen>
 <!--    home-->
     <dimen name="home_padding">15sp</dimen>
+    <dimen name="home_textSize">25sp</dimen>
+    <dimen name="home_textSize_position">15sp</dimen>
 </resources>

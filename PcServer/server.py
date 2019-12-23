@@ -7,26 +7,6 @@ import sys
 import json
 import common
 
-RESPONSE = """
-{
-    "device": "SERVER",
-    "time": {
-        "year": 2003,
-        "month": 6,
-        "day": 19,
-        "hour": 2,
-        "minute": 13,
-        "second": 58
-    },
-    "position": {
-        "longitude": "N678924",
-        "latitude": "E343210",
-        "moved": 1
-    }
-}
-"""
-
-
 def get_host_ip():
     '''
     %

@@ -2,34 +2,45 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
+    <TextView
+        android:id="@+id/_position"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/position"
+        android:textSize="@dimen/home_textSize"
+        />
     <TextView
         android:id="@+id/textArea"
+        android:layout_toRightOf="@id/_position"
+        android:layout_toLeftOf="@id/btn_clear"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/server_status_bar"
-        android:padding="16dp"
-        android:scrollbars="vertical"
-        android:gravity="bottom"
-        android:textSize="20sp"
-        />
+        android:layout_above="@id/map"
+        android:padding="16dp" />
+
     <Button
         android:id="@+id/btn_clear"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/btn_clear"
         android:layout_alignParentEnd="true"
+        android:text="@string/btn_clear" />
+
+    <fragment
+        android:id="@+id/map"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btn_clear"
+        android:layout_above="@id/server_status_bar"
         />
+
     <TextView
         android:id="@+id/server_status_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="@dimen/home_padding"
-        android:textSize="13sp"
-        android:text="@string/server_not_ready"
         android:layout_alignParentBottom="true"
-        />
-
+        android:padding="@dimen/home_padding"
+        android:text="@string/server_not_ready"
+        android:textSize="13sp" />
 
 
 </RelativeLayout>
