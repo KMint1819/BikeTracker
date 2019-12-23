@@ -33,20 +33,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class HomeFragment extends Fragment implements OnMapReadyCallback {
+public class HomeFragment extends Fragment{
     private static final String TAG = "HomeFragment";
     private TextView textPosition = null;
     private TextView statusBar = null;
     private SupportMapFragment mapFragment = null;
+    private Map map = null;
     private String ip;
     private int port;
     private Socket socket = null;
     private BufferedReader reader = null;
     private BufferedWriter writer = null;
-
-    private GoogleMap mMap = null;
-    private ArrayList<LatLng> spots = null;
-    private Marker curMarker = null;
     HomeFragment(String ip, int port) {
         this.ip = ip;
         this.port = port;
@@ -64,30 +61,19 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d(TAG, "Creating view...");
         View view = inflater.inflate(R.layout.fragment_home, container, false);
-        Log.d(TAG, "View finished.");
         textPosition = view.findViewById(R.id.txt_position);
         statusBar = view.findViewById(R.id.server_status_bar);
         Button btnClear = view.findViewById(R.id.btn_clear);
         btnClear.setOnClickListener(clearListener);
 
+        map = new Map();
         mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
-            Log.d(TAG, "mapFragment is not null...");
-            mapFragment.getMapAsync(this);
-            Log.d(TAG, "getMapAsync called...");
+            mapFragment.getMapAsync(map);
         } else {
             Log.e(TAG, "mapFragment is null!!");
         }
-//        while (!map.ready()) {
-//            Log.d(TAG, "Waiting for map ready...");
-//            try {
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
         return view;
     }
 
@@ -122,7 +108,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                     t.interrupt();
                     timer.interrupt();
                     Log.d(TAG, "GET request timeout!");
-                    textPosition.append(String.format("%d -------TIMEOUT-------\n", idx++));
+                    textPosition.setText(String.format("%d -------TIMEOUT-------\n", idx++));
                     continue;
                 }
                 timer.interrupt();
@@ -141,31 +127,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             }
         }
     });
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        Log.d(TAG, "Map is ready!!");
-        mMap = googleMap;
-        if(googleMap != null){
-            Log.d(TAG, "googleMap is not null...");
-            mMap = googleMap;
-        }
-        else {
-            Log.e(TAG, "googleMap is null!!");
-        }
-    }
-    private void newMarker(LatLng latlng) {
-        if(mMap == null) {
-            Log.e(TAG, "new Marker mMap is null!");
-        }
-        else {
-            if(curMarker != null) {
-                curMarker.remove();
-            }
-            curMarker = mMap.addMarker(new MarkerOptions().position(latlng));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
-        }
-    }
     class PositionUpdater implements Runnable {
         private String latitude;
         private String longitude;
@@ -181,7 +142,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         @Override
         public void run() {
             textPosition.setText(String.format("%d. (%s, %s)", idx++, longitude, latitude));
-            newMarker(new LatLng(Float.parseFloat(longitude), Float.parseFloat(latitude)));
+            map.newMarker(new LatLng(Float.parseFloat(longitude), Float.parseFloat(latitude)));
         }
     }
 
