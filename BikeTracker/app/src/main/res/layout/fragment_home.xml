@@ -35,6 +35,20 @@
         android:layout_below="@id/btn_clear" />
 
     <TextView
+        android:id="@+id/map_cover"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/server_status_bar"
+        android:layout_below="@id/txt_position"
+        android:background="@drawable/map_cover"
+        android:textColor="@color/colorMapCoverText"
+        android:textSize="@dimen/home_mapCoverTextSize"
+        android:textAlignment="center"
+        android:gravity="center"
+        android:text="@string/txt_mapCover" />
+
+
+    <TextView
         android:id="@+id/server_status_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -47,9 +61,8 @@
         android:id="@+id/btn_start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/btn_start"
         android:layout_alignParentEnd="true"
-        />
+        android:text="@string/btn_start" />
 
 
 </RelativeLayout>
