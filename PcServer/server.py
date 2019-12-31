@@ -5,8 +5,10 @@ Simple server for PC
 import socket
 import sys
 import json
+from math import sin, cos, radians, asin, sqrt
 import common
 
+THRESHOLD = 5
 def get_host_ip():
     '''
     %
@@ -39,33 +41,58 @@ class Position(object):
         Arguments:
             data {json} -- json object which contains longitude, latitude, and moved
         """
-        self.longitude = data['longitude']
-        self.latitude = data['latitude']
+        self.longitude = float(data['longitude'])
+        self.latitude = float(data['latitude'])
 
         if 'moved' in data:
             self.moved = bool(data['moved'])
         else:
             self.moved = False
 
-    def to_json(self):
-        """Return position as json format
+    def to_dict(self):
+        """Return position as dict
 
         Returns:
-            json object -- Position
+            dict -- Position
         """
         obj = {}
-        obj['longitude'] = self.longitude
-        obj['latitude'] = self.latitude
+        obj['longitude'] = str(self.longitude)
+        obj['latitude'] = str(self.latitude)
         obj['moved'] = int(self.moved)
         return obj
 
 
-# NOT FINISHED!
-def moved(old_position, new_position):
+def moved(old, new):
     '''
     Use some algorithms and threshold to determine whether the position is moved.
     '''
-    return True
+    def haversine(old, new):
+        """An implementation for haversine formula which calculates distance between
+        coordinates.
+
+        Arguments:
+            old {Position} -- Old position
+            new {Position} -- New position
+
+        Returns:
+            float -- Distance for two coordintates. (Meters)
+        """
+        lng1 = radians(float(old.longitude))
+        lat1 = radians(float(old.latitude))
+        lng2 = radians(float(new.longitude))
+        lat2 = radians(float(new.latitude))
+
+        dlng = lng2 - lng1
+        dlat = lat2 - lat1
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlng/2)**2
+        c = 2 * asin(sqrt(a))
+        r = 6371
+        distance = c * r * 1000
+        print(f'Distance between old and new: {distance}m.')
+        return distance
+    if haversine(old, new) > THRESHOLD:
+        return True
+    return False
 
 
 def main():
@@ -111,8 +138,8 @@ def main():
         if rcv_json['device'] == 'ARDUINO':
             pos = Position(rcv_json['position'])
             print(f'Position: 緯度{pos.latitude} 經度{pos.longitude}')
-            if moved(current_pos, pos):
-                pos.moved = True
+            if current_pos is not None:
+                pos.moved = moved(current_pos, pos)
             current_pos = pos
         elif rcv_json['device'] == 'PHONE':
             if rcv_json['request'] == 'START':
@@ -124,7 +151,7 @@ def main():
                 print('Receiving GET from phone!')
                 if current_pos is not None:
                     msg = common.get_initial_msg('SERVER')
-                    msg['position'] = current_pos.to_json()
+                    msg['position'] = current_pos.to_dict()
                     msg_str = json.dumps(msg) + '\n'
                     print(f'Sending {json.dumps(msg, indent=4)} to phone...')
                     client_skt.send(msg_str.encode())

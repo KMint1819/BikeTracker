@@ -40,7 +40,7 @@ def test():
     '''
     %
     '''
-    print(get_send_time())
+    print(get_send_time_json())
 
 
 if __name__ == "__main__":
