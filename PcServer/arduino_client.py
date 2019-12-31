@@ -40,15 +40,15 @@ def main():
         except socket.error:
             print('Socket error!')
         latlng = input(
-            'Enter the longitude and latitude (Default is random): ')
+            'Enter the latitude and longitude with format "lat,lng" (Default is random): ')
+        position = {}
         if latlng == '':
-            position = {}
             rand_position = get_random_position()
             position['latitude'] = rand_position[0]
             position['longitude'] = rand_position[1]
         else:
-            lng = latlng.split(',')[0]
-            lat = latlng.split(',')[1]
+            lat = latlng.split(',')[0]
+            lng = latlng.split(',')[1]
             position['latitude'] = lat
             position['longitude'] = lng
         msg = common.get_initial_msg('ARDUINO')
