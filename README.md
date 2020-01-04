@@ -48,8 +48,3 @@ A little module for tracking objects(assuming bicycles) and prevent them from be
     
 ## Notes:
 - 緯度是latitude, 經度是longitude
-## Encountered problems:
-1. LORA gateway out of budget
-2. 原本要使用LORA p2p, but 手機sim卡ip 隨時變動, 無法得知位址
-3. Arduino requires more power supply
-5. Cost a lot of phone energy
