@@ -147,7 +147,7 @@ def main():
         print(f'{adr} is connected...')
         rcv_json = None
         try:
-            client_skt.settimeout(2.0)
+            client_skt.settimeout(5.0)
             rcv_str = client_skt.recv(2048).decode('utf-8')
             print(f'Client sent: <{rcv_str}>')
             rcv_json = json.loads(rcv_str)
@@ -175,6 +175,8 @@ def main():
         elif rcv_json['device'] == 'PHONE':
             if rcv_json['request'] == 'START':
                 print('Receiving START from phone!')
+                if current_pos is not None:
+                    current_pos.moved = False
                 msg = common.get_initial_msg('SERVER')
                 msg_str = json.dumps(msg) + '\n'
                 client_skt.send(msg_str.encode())
@@ -186,6 +188,11 @@ def main():
                     msg_str = json.dumps(msg) + '\n'
                     print(f'Sending {json.dumps(msg, indent=4)} to phone...')
                     client_skt.send(msg_str.encode())
+            elif rcv_json['request'] == 'STOP':
+                print('Receiving STOP from phone!')
+                msg = common.get_initial_msg('SERVER')
+                msg_str = json.dumps(msg) + '\n'
+                client_skt.send(msg_str.encode())
         else:
             print('Format error! Check the documentation.')
 
