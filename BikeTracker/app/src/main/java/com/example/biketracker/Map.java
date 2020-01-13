@@ -18,7 +18,7 @@ import java.util.Stack;
 public class Map implements OnMapReadyCallback {
     private String TAG = "Map";
     private GoogleMap mMap = null;
-//    private ArrayList<LatLng> spots = null;
+    //    private ArrayList<LatLng> spots = null;
     private Stack<LatLng> spots = null;
     private boolean mapReady = false;
     private Marker curMarker = null;
@@ -45,10 +45,34 @@ public class Map implements OnMapReadyCallback {
         spots.clear();
     }
 
+    public void addTrack(LatLng pre, LatLng now) {
+        Log.i(TAG, String.format("Adding first polyline: (%f, %f), (%f, %f)",
+                pre.latitude, pre.longitude,
+                now.latitude, now.longitude));
+        mMap.addPolyline(new PolylineOptions()
+                .add(pre)
+                .add(now)
+                .visible(true));
+        spots.add(pre);
+        spots.add(now);
+    }
+
     public void addTrack(LatLng latlng) {
-        if(spots.size() == 0) {
+        if (spots.size() == 0) {
             spots.add(latlng);
-            mMap.addPolyline(new PolylineOptions().add(spots.lastElement()));
+        } else {
+            double distance = haversine(latlng, spots.lastElement());
+            Log.i(TAG, "Distance: " + distance);
+            if (distance >= 10.0f) {
+                Log.i(TAG, String.format("Adding Polyline: (%f, %f), (%f, %f)",
+                        spots.lastElement().latitude, spots.lastElement().longitude,
+                        latlng.latitude, latlng.longitude));
+                mMap.addPolyline(new PolylineOptions()
+                        .add(spots.lastElement())
+                        .add(latlng)
+                        .visible(true));
+                spots.add(latlng);
+            }
         }
     }
 
@@ -62,6 +86,23 @@ public class Map implements OnMapReadyCallback {
             curMarker = mMap.addMarker(new MarkerOptions().position(latlng));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
         }
+    }
+
+    private static double haversine(LatLng latlng1, LatLng latlng2) {
+        double lat1 = latlng1.latitude;
+        double lon1 = latlng1.longitude;
+        double lat2 = latlng2.latitude;
+        double lon2 = latlng2.longitude;
+        final int R = 6371; // Radius of the earth
+
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double distance = R * c * 1000; // convert to meters
+        return distance;
     }
 
 }

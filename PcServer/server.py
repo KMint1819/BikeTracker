@@ -8,7 +8,7 @@ import json
 from math import sin, cos, radians, asin, sqrt
 import common
 
-THRESHOLD = 5
+THRESHOLD = 10
 
 
 def get_host_ip():
@@ -147,7 +147,7 @@ def main():
         print(f'{adr} is connected...')
         rcv_json = None
         try:
-            client_skt.settimeout(5.0)
+            client_skt.settimeout(3.0)
             rcv_str = client_skt.recv(2048).decode('utf-8')
             print(f'Client sent: <{rcv_str}>')
             rcv_json = json.loads(rcv_str)

@@ -51,6 +51,7 @@ public class HomeFragment extends Fragment {
     private Thread funcThread = null;
     private Map map = null;
     private boolean bikeMoved = false;
+    private LatLng firstMoved = null;
 
     HomeFragment(String ip, int port) {
         this.ip = ip;
@@ -162,6 +163,9 @@ public class HomeFragment extends Fragment {
                         bikeMoved = true;
                         Log.i(TAG, "Moved!!!!!");
                     }
+                    else if(!bikeMoved) {
+                        firstMoved = new LatLng(latitude, longitude);
+                    }
                     final String str_lng = Double.toString(longitude);
                     final String str_lat = Double.toString(latitude);
                     Objects.requireNonNull(getActivity()).runOnUiThread(new PositionUpdater(str_lng, str_lat, idx++));
@@ -202,8 +206,15 @@ public class HomeFragment extends Fragment {
             textPosition.setText(String.format("%d. (%s, %s)", idx++, longitude, latitude));
             map.newMarker(latlng);
             if (bikeMoved) {
-                map.addTrack(latlng);
-                statusBar.setText("Moved!!!");
+                if(firstMoved != null) {
+                    map.addTrack(firstMoved, latlng);
+                    firstMoved = null;
+                }
+                else {
+                    map.addTrack(latlng);
+                    statusBar.setText("Moved!!!");
+                }
+
             }
         }
     }
