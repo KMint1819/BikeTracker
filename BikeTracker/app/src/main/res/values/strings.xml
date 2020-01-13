@@ -4,14 +4,14 @@
     <string name="tab_history">History</string>
     <string name="btn_clear">CLEAR</string>
     <!-- main   -->
-    <string name="default_ip">192.168.66.105</string>
+    <string name="default_ip">192.168.50.47</string>
     <!--    home fragment-->
     <string name="position">Position: </string>
     <string name="server_not_ready">Not connected to server…</string>
     <string name="server_ready">Connected</string>
     <string name="btn_start">Start</string>
     <string name="btn_stop">Stop</string>
-    <string name="txt_mapCover">Press start...</string>
+    <string name="txt_mapCover">Touch to start...</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
