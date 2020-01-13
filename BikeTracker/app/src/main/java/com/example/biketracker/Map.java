@@ -85,9 +85,12 @@ public class Map implements OnMapReadyCallback {
             }
             curMarker = mMap.addMarker(new MarkerOptions().position(latlng));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
+            updateCameraZoom();
         }
     }
-
+    private void updateCameraZoom() {
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(15.0f));
+    }
     private static double haversine(LatLng latlng1, LatLng latlng2) {
         double lat1 = latlng1.latitude;
         double lon1 = latlng1.longitude;
