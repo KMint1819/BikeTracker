@@ -41,7 +41,7 @@ public class HomeFragment extends Fragment {
     private TextView img_mapCover = null;
     private Button btnStart = null;
     private SupportMapFragment mapFragment = null;
-    private Map map = null;
+    //
     private String ip;
     private int port;
     private Socket socket = null;
@@ -49,6 +49,9 @@ public class HomeFragment extends Fragment {
     private BufferedWriter writer = null;
     private boolean startSign = false;
     private Thread funcThread = null;
+    private Map map = null;
+    private boolean bikeMoved = false;
+    private LatLng firstMoved = null;
 
     HomeFragment(String ip, int port) {
         this.ip = ip;
@@ -94,10 +97,19 @@ public class HomeFragment extends Fragment {
                 btnStart.setText(R.string.btn_start);
                 textPosition.setText("");
                 statusBar.setText(R.string.server_not_ready);
+                map.clear();
                 img_mapCover.setVisibility(View.VISIBLE);
                 funcThread.interrupt();
+//                Thread t = new Thread(new stopRequest());
+//                t.start();
+//                try {
+//                    t.join();
+//                } catch (java.lang.InterruptedException e){
+//                    e.printStackTrace();
+//                }
             } else {
                 Log.i(TAG, "Trying to start funcThread...");
+                bikeMoved = false;
                 startSign = true;
                 btnStart.setText(R.string.btn_stop);
                 img_mapCover.setVisibility(View.INVISIBLE);
@@ -143,11 +155,19 @@ public class HomeFragment extends Fragment {
                 rcv_obj = getRequestExe.getObject();
                 if (startSign) {
                     JsonObject position = rcv_obj.getAsJsonObject("position");
-                    final float longitude = position.get("longitude").getAsFloat();
-                    final float latitude = position.get("latitude").getAsFloat();
+                    final double longitude = position.get("longitude").getAsFloat();
+                    final double latitude = position.get("latitude").getAsFloat();
+                    final int moved = position.get("moved").getAsInt();
                     Log.i(TAG, String.format("Longitude: <%f>, latitude: <%f>", longitude, latitude));
-                    final String str_lng = Float.toString(longitude);
-                    final String str_lat = Float.toString(latitude);
+                    if (!bikeMoved && moved != 0) {
+                        bikeMoved = true;
+                        Log.i(TAG, "Moved!!!!!");
+                    }
+                    else if(!bikeMoved) {
+                        firstMoved = new LatLng(latitude, longitude);
+                    }
+                    final String str_lng = Double.toString(longitude);
+                    final String str_lat = Double.toString(latitude);
                     Objects.requireNonNull(getActivity()).runOnUiThread(new PositionUpdater(str_lng, str_lat, idx++));
                     try {
                         Thread.sleep(2000);
@@ -163,11 +183,20 @@ public class HomeFragment extends Fragment {
     class PositionUpdater implements Runnable {
         private String latitude;
         private String longitude;
+        private LatLng latlng;
         private int idx;
 
         PositionUpdater(String longitude, String latitude, int idx) {
             this.longitude = longitude;
             this.latitude = latitude;
+            latlng = new LatLng(Double.parseDouble(latitude), Double.parseDouble(longitude));
+            this.idx = idx;
+        }
+
+        PositionUpdater(LatLng latlng, int idx) {
+            this.latlng = latlng;
+            this.latitude = Double.toString(latlng.latitude);
+            this.longitude = Double.toString(latlng.longitude);
             this.idx = idx;
         }
 
@@ -175,7 +204,18 @@ public class HomeFragment extends Fragment {
         @Override
         public void run() {
             textPosition.setText(String.format("%d. (%s, %s)", idx++, longitude, latitude));
-            map.newMarker(new LatLng(Float.parseFloat(latitude), Float.parseFloat(longitude)));
+            map.newMarker(latlng);
+            if (bikeMoved) {
+                if(firstMoved != null) {
+                    map.addTrack(firstMoved, latlng);
+                    firstMoved = null;
+                }
+                else {
+                    map.addTrack(latlng);
+                    statusBar.setText("Moved!!!");
+                }
+
+            }
         }
     }
 
@@ -230,6 +270,41 @@ public class HomeFragment extends Fragment {
             }
         });
     }
+
+//    private class stopRequest implements Runnable {
+//        @Override
+//        public void run() {
+//            Log.i(TAG, "Requesting stop request...");
+//            try {
+//                String request = new Request(RequestType.STOP).toJson();
+//                writer.write(request);
+//                writer.flush();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            String rcv_str = "";
+//            while (!startSign) {
+//                try {
+//                    socket.setSoTimeout(3000);
+//                    rcv_str = reader.readLine();
+//                } catch (java.net.SocketTimeoutException e) {
+//                    Log.e(TAG, "STOP timeout!");
+//                    e.printStackTrace();
+//                    continue;
+//                } catch (IOException e) {
+//                    Log.e(TAG, String.format("Received string <%s> error!", rcv_str));
+//                    e.printStackTrace();
+//                    continue;
+//                }
+//                if (rcv_str != null && !rcv_str.equals("")) {
+//                    break;
+//                }
+//            }
+//            Log.i(TAG, "STOP receives " + rcv_str);
+//        }
+//    }
+
+
 
     private class Timer implements Runnable {
         int timeout;

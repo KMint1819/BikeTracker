@@ -8,46 +8,101 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
+import java.util.Stack;
 
 public class Map implements OnMapReadyCallback {
     private String TAG = "Map";
     private GoogleMap mMap = null;
-    private ArrayList<LatLng> spots = null;
+    //    private ArrayList<LatLng> spots = null;
+    private Stack<LatLng> spots = null;
     private boolean mapReady = false;
     private Marker curMarker = null;
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         Log.d(TAG, "Map is ready!!");
-        spots = new ArrayList<>();
-        if(googleMap != null){
+        spots = new Stack<>();
+        if (googleMap != null) {
             Log.d(TAG, "googleMap is not null...");
             mMap = googleMap;
             mapReady = true;
-        }
-        else {
+        } else {
             Log.e(TAG, "googleMap is null!!");
         }
     }
+
     boolean ready() {
         return mapReady;
     }
-    public void addMarker(LatLng latlng) {
-        mMap.addMarker(new MarkerOptions().position(latlng));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
+
+    public void clear() {
+        mMap.clear();
+        spots.clear();
+    }
+
+    public void addTrack(LatLng pre, LatLng now) {
+        Log.i(TAG, String.format("Adding first polyline: (%f, %f), (%f, %f)",
+                pre.latitude, pre.longitude,
+                now.latitude, now.longitude));
+        mMap.addPolyline(new PolylineOptions()
+                .add(pre)
+                .add(now)
+                .visible(true));
+        spots.add(pre);
+        spots.add(now);
+    }
+
+    public void addTrack(LatLng latlng) {
+        if (spots.size() == 0) {
+            spots.add(latlng);
+        } else {
+            double distance = haversine(latlng, spots.lastElement());
+            Log.i(TAG, "Distance: " + distance);
+            if (distance >= 10.0f) {
+                Log.i(TAG, String.format("Adding Polyline: (%f, %f), (%f, %f)",
+                        spots.lastElement().latitude, spots.lastElement().longitude,
+                        latlng.latitude, latlng.longitude));
+                mMap.addPolyline(new PolylineOptions()
+                        .add(spots.lastElement())
+                        .add(latlng)
+                        .visible(true));
+                spots.add(latlng);
+            }
+        }
     }
 
     public void newMarker(LatLng latlng) {
-        if(mMap == null) {
+        if (mMap == null) {
             Log.e(TAG, "new Marker mMap is null!");
-        }
-        else {
-            if(curMarker != null) {
+        } else {
+            if (curMarker != null) {
                 curMarker.remove();
             }
             curMarker = mMap.addMarker(new MarkerOptions().position(latlng));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
         }
     }
+
+    private static double haversine(LatLng latlng1, LatLng latlng2) {
+        double lat1 = latlng1.latitude;
+        double lon1 = latlng1.longitude;
+        double lat2 = latlng2.latitude;
+        double lon2 = latlng2.longitude;
+        final int R = 6371; // Radius of the earth
+
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double distance = R * c * 1000; // convert to meters
+        return distance;
+    }
+
 }
