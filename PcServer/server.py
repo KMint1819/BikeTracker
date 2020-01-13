@@ -5,7 +5,11 @@ Simple server for PC
 import socket
 import sys
 import json
+from math import sin, cos, radians, asin, sqrt
 import common
+
+THRESHOLD = 5
+
 
 def get_host_ip():
     '''
@@ -60,12 +64,66 @@ class Position(object):
         return obj
 
 
-# NOT FINISHED!
-def moved(old_position, new_position):
+# class ClientInterface(object):
+#     '''
+#     A wrapper for client socket and I/O stream with timer.
+#     '''
+
+#     def __init__(self, skt):
+#         self._timeout = False
+#         self.skt = skt
+#         self.rcv_str = ''
+
+#     def recv(self, timeout):
+#         """Receives from socket with timer
+
+#         Arguments:
+#             timeout {int} -- Timeout second
+#         """
+#         self.rcv_str = self.skt.recv(2048).decode('utf-8')
+
+#     def send(self, msg):
+#         """Encodes message and send.
+
+#         Arguments:
+#             msg {str} -- Message without encoding.
+#         """
+#         self.skt.send(msg.encode('utf-8'))
+
+
+def moved(old, new):
     '''
     Use some algorithms and threshold to determine whether the position is moved.
     '''
-    return True
+    def haversine(old, new):
+        """An implementation for haversine formula which calculates distance between
+        coordinates.
+
+        Arguments:
+            old {Position} -- Old position
+            new {Position} -- New position
+
+        Returns:
+            float -- Distance for two coordintates. (Meters)
+        """
+        lng1 = radians(float(old.longitude))
+        lat1 = radians(float(old.latitude))
+        lng2 = radians(float(new.longitude))
+        lat2 = radians(float(new.latitude))
+
+        dlng = lng2 - lng1
+        dlat = lat2 - lat1
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlng/2)**2
+        c = 2 * asin(sqrt(a))
+        r = 6371
+        distance = c * r * 1000
+        print(f'Distance between old and new: {distance}m.')
+        return distance
+    if old is None:
+        return False
+    if haversine(old, new) > THRESHOLD:
+        return True
+    return False
 
 
 def main():
@@ -89,14 +147,14 @@ def main():
         print(f'{adr} is connected...')
         rcv_json = None
         try:
+            client_skt.settimeout(2.0)
             rcv_str = client_skt.recv(2048).decode('utf-8')
-            # rcv_str = client_skt.recv(2048)
             print(f'Client sent: <{rcv_str}>')
-            # print('Removing the first and second character...')
-            # rcv_str = rcv_str[2:]
-            # print(f'Becomes {rcv_str}')
             rcv_json = json.loads(rcv_str)
             print(f'To json: \nf{rcv_json}')
+        except socket.timeout:
+            print('Receive timeout!')
+            continue
         except json.decoder.JSONDecodeError:
             print('Format error! Check the documentation.')
             continue

@@ -48,6 +48,7 @@ public class HomeFragment extends Fragment {
     private BufferedReader reader = null;
     private BufferedWriter writer = null;
     private boolean startSign = false;
+    private Thread funcThread = null;
 
     HomeFragment(String ip, int port) {
         this.ip = ip;
@@ -73,6 +74,7 @@ public class HomeFragment extends Fragment {
         btnStart = view.findViewById(R.id.btn_start);
         btnStart.setOnClickListener(startListener);
         img_mapCover = view.findViewById(R.id.map_cover);
+        img_mapCover.setOnClickListener(startListener);
         map = new Map();
         mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
@@ -86,23 +88,20 @@ public class HomeFragment extends Fragment {
     private View.OnClickListener startListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            if (funcThread.isAlive()) {
+            if (funcThread != null && funcThread.isAlive()) {
                 Log.i(TAG, "Trying to stop funcThread...");
                 startSign = false;
                 btnStart.setText(R.string.btn_start);
+                textPosition.setText("");
+                statusBar.setText(R.string.server_not_ready);
                 img_mapCover.setVisibility(View.VISIBLE);
-                if (funcThread.isAlive()) {
-                    try {
-                        funcThread.join();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
+                funcThread.interrupt();
             } else {
                 Log.i(TAG, "Trying to start funcThread...");
                 startSign = true;
                 btnStart.setText(R.string.btn_stop);
                 img_mapCover.setVisibility(View.INVISIBLE);
+                funcThread = new Thread(mainFunc);
                 funcThread.start();
             }
         }
@@ -113,7 +112,7 @@ public class HomeFragment extends Fragment {
             textPosition.setText("");
         }
     };
-    private Thread funcThread = new Thread(new Runnable() {
+    private Runnable mainFunc = new Runnable() {
         @SuppressLint("DefaultLocale")
         @Override
         public void run() {
@@ -153,13 +152,13 @@ public class HomeFragment extends Fragment {
                     try {
                         Thread.sleep(2000);
                     } catch (InterruptedException e) {
-                        Log.i(TAG, "funcThread interrupted!");
+                        Log.i(TAG, "mainFunc interrupted!");
                     }
                 }
             }
-            Log.i(TAG, "Leaving funcThread...");
+            Log.i(TAG, "Leaving mainFunc...");
         }
-    });
+    };
 
     class PositionUpdater implements Runnable {
         private String latitude;
@@ -176,7 +175,7 @@ public class HomeFragment extends Fragment {
         @Override
         public void run() {
             textPosition.setText(String.format("%d. (%s, %s)", idx++, longitude, latitude));
-            map.newMarker(new LatLng(Float.parseFloat(longitude), Float.parseFloat(latitude)));
+            map.newMarker(new LatLng(Float.parseFloat(latitude), Float.parseFloat(longitude)));
         }
     }
 
@@ -205,7 +204,6 @@ public class HomeFragment extends Fragment {
         Log.i(TAG, "Requesting start request...");
         try {
             String request = new Request(RequestType.START).toJson();
-            Log.i(TAG, "Sending:\n" + request);
             writer.write(request);
             writer.flush();
         } catch (IOException e) {
@@ -267,7 +265,7 @@ public class HomeFragment extends Fragment {
             String rcv_str = "";
             while (startSign) {
                 try {
-                    Log.d(TAG, "Receving GET...");
+                    Log.d(TAG, "Receiving GET...");
                     rcv_str = reader.readLine();
                 } catch (IOException e) {
                     Log.e(TAG, String.format("Received string <%s> error!", rcv_str));
