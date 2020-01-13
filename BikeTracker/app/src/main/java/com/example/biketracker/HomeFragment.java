@@ -144,11 +144,12 @@ public class HomeFragment extends Fragment {
                 rcv_obj = getRequestExe.getObject();
                 if (startSign) {
                     JsonObject position = rcv_obj.getAsJsonObject("position");
-                    final String longitude = position.get("longitude").toString();
-                    final String latitude = position.get("latitude").toString();
-                    Log.i(TAG, String.format("Longitude: <%s>, latitude: <%s>", longitude, latitude));
-
-                    Objects.requireNonNull(getActivity()).runOnUiThread(new PositionUpdater(longitude, latitude, idx++));
+                    final float longitude = position.get("longitude").getAsFloat();
+                    final float latitude = position.get("latitude").getAsFloat();
+                    Log.i(TAG, String.format("Longitude: <%f>, latitude: <%f>", longitude, latitude));
+                    final String str_lng = Float.toString(longitude);
+                    final String str_lat = Float.toString(latitude);
+                    Objects.requireNonNull(getActivity()).runOnUiThread(new PositionUpdater(str_lng, str_lat, idx++));
                     try {
                         Thread.sleep(2000);
                     } catch (InterruptedException e) {

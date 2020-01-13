@@ -8,7 +8,7 @@ import json
 import random
 import common
 
-SERVER_IP = '192.168.66.105'
+SERVER_IP = '172.20.10.3'
 if len(sys.argv) > 1:
     PORT = int(sys.argv[1])
 else:
