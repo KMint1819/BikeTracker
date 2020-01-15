@@ -14,7 +14,6 @@ if len(sys.argv) > 1:
 else:
     PORT = 8051
 
-
 def get_random_position():
     """Returns a tuple of random position base on format.
         ex. (27.123456, -130.765432)
@@ -36,7 +35,9 @@ def main():
     while True:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
+            print('Trying to connect...')
             s.connect((SERVER_IP, PORT))
+            print('Connected!')
         except socket.error:
             print('Socket error!')
         latlng = input(
