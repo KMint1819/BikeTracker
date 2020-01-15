@@ -7,6 +7,7 @@
         android:id="@+id/_position"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:padding="@dimen/home_padding"
         android:text="@string/position"
         android:textSize="@dimen/home_textSize" />
 
@@ -41,11 +42,11 @@
         android:layout_above="@id/server_status_bar"
         android:layout_below="@id/txt_position"
         android:background="@drawable/map_cover"
-        android:textColor="@color/colorMapCoverText"
-        android:textSize="@dimen/home_mapCoverTextSize"
-        android:textAlignment="center"
         android:gravity="center"
-        android:text="@string/txt_mapCover" />
+        android:text="@string/txt_mapCover"
+        android:textAlignment="center"
+        android:textColor="@color/colorMapCoverText"
+        android:textSize="@dimen/home_mapCoverTextSize" />
 
 
     <TextView
@@ -57,6 +58,14 @@
         android:text="@string/server_not_ready"
         android:textSize="13sp" />
 
+    <TextView
+        android:id="@+id/status_color"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/map"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@id/server_status_bar"
+        android:background="@color/colorPrimary" />
 
     <Button
         android:id="@+id/btn_start"

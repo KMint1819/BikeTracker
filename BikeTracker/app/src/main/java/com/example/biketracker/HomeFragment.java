@@ -1,6 +1,8 @@
 package com.example.biketracker;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -11,16 +13,13 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -31,7 +30,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Objects;
 
 public class HomeFragment extends Fragment {
@@ -39,6 +37,7 @@ public class HomeFragment extends Fragment {
     private TextView textPosition = null;
     private TextView statusBar = null;
     private TextView img_mapCover = null;
+    private TextView statusColor = null;
     private Button btnStart = null;
     private SupportMapFragment mapFragment = null;
     //
@@ -52,7 +51,7 @@ public class HomeFragment extends Fragment {
     private Map map = null;
     private boolean bikeMoved = false;
     private LatLng firstMoved = null;
-
+    private Context mContext = null;
     HomeFragment(String ip, int port) {
         this.ip = ip;
         this.port = port;
@@ -72,6 +71,7 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         textPosition = view.findViewById(R.id.txt_position);
         statusBar = view.findViewById(R.id.server_status_bar);
+        statusColor = view.findViewById(R.id.status_color);
         Button btnClear = view.findViewById(R.id.btn_clear);
         btnClear.setOnClickListener(clearListener);
         btnStart = view.findViewById(R.id.btn_start);
@@ -88,6 +88,12 @@ public class HomeFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        mContext = context;
+    }
+
     private View.OnClickListener startListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -97,6 +103,7 @@ public class HomeFragment extends Fragment {
                 btnStart.setText(R.string.btn_start);
                 textPosition.setText("");
                 statusBar.setText(R.string.server_not_ready);
+                statusColor.setBackgroundColor(Color.GREEN);
                 map.clear();
                 img_mapCover.setVisibility(View.VISIBLE);
                 funcThread.interrupt();
@@ -207,12 +214,14 @@ public class HomeFragment extends Fragment {
             map.newMarker(latlng);
             if (bikeMoved) {
                 if(firstMoved != null) {
+                    // Moved first
+                    statusColor.setBackgroundColor(Color.RED);
+                    statusBar.setText("Moved!!!");
                     map.addTrack(firstMoved, latlng);
                     firstMoved = null;
                 }
                 else {
                     map.addTrack(latlng);
-                    statusBar.setText("Moved!!!");
                 }
 
             }

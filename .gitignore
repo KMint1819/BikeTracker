@@ -1,1 +1,4 @@
 **/__pycache__/**
+*.zip
+*.apk
+**/app/release/*
