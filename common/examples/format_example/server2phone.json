@@ -9,8 +9,8 @@
         "second": 58
     },
     "position": {
-        "longitude": "121",
-        "latitude": "23.5",
+        "longitude": 121,
+        "latitude": 23.5,
         "moved": 1
     }
 }
