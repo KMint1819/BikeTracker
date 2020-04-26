@@ -24,8 +24,7 @@ A little module for tracking objects(assuming bicycles) and prevent them from be
             }
         }
       ```
-        - Format of `longitude`, `latitude` is still unknown
-        - `Moved`: Whether the device is moved. (Options are "1" for true and "0" for false.)
+        - `Moved`: Whether the device is moved. ("1" for true and "0" for false.)
 
 - Phone request:
     - ```json=

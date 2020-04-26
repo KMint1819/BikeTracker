@@ -6,6 +6,7 @@ import socket
 import sys
 import json
 from math import sin, cos, radians, asin, sqrt
+import pymongo
 import common
 
 THRESHOLD = 10
@@ -126,12 +127,43 @@ def moved(old, new):
     return False
 
 
+def insert_position(db, data):
+    def inserted_format(data):
+        form = {}
+        form['device'] = data['device']
+        form['data'] = {}
+        form['data']['time'] = data['time']
+        form['data']['position'] = data['position']
+        return form
+    data = inserted_format(data)
+    print('Inserting: ', data)
+    query = {'device': data['device']}
+    collection = db['timeline']
+    device = collection.find_one(query)
+    if device is None:
+        collection.insert_one(data)
+    else:
+        if not isinstance(device['data'], list):
+            device['data'] = [device['data']]
+        device['data'].append(data['data'])
+        collection.replace_one(query, device)
+
+
 def main():
     '''
     %
     '''
     global PORT
     s = socket.socket()
+    client = pymongo.MongoClient('localhost', 27017)
+    try:
+        # The ismaster command is cheap and does not require auth.
+        client.admin.command('ismaster')
+    except pymongo.errors.ConnectionFailure:
+        print("Server not available")
+    print('Connected to database!')
+    db = client['biketracker']
+
     while True:
         try:
             s.bind((HOST, PORT))
@@ -167,6 +199,7 @@ def main():
         print(f'Send time: {rcv_json["time"]}')
 
         if rcv_json['device'] == 'ARDUINO':
+            insert_position(db, rcv_json)
             pos = Position(rcv_json['position'])
             print(f'Position: 緯度{pos.latitude} 經度{pos.longitude}')
             if moved(current_pos, pos):

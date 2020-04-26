@@ -1,3 +1,32 @@
-{
-    "device": "ARDUINO"
-}
+[{
+    "device": "ARDUINO",
+    "data": [{
+            "time": {
+                "year": 1998,
+                "month": 10,
+                "day": 18,
+                "hour": 9,
+                "minute": 17,
+                "second": 6
+            },
+            "position": {
+                "longitude": "121",
+                "latitude": "23.5"
+            }
+        },
+        {
+            "time": {
+                "year": 1999,
+                "month": 1,
+                "day": 2,
+                "hour": 3,
+                "minute": 4,
+                "second": 5
+            },
+            "position": {
+                "longitude": "222",
+                "latitude": "31.2"
+            }
+        }
+    ]
+}]
