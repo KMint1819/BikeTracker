@@ -15,4 +15,6 @@
     <dimen name="home_textSize">20sp</dimen>
     <dimen name="home_textSize_position">15sp</dimen>
     <dimen name="home_mapCoverTextSize">50sp</dimen>
+<!--    history-->
+    <dimen name="history_margin">15sp</dimen>
 </resources>

@@ -64,6 +64,40 @@ class Position(object):
         obj['moved'] = int(self.moved)
         return obj
 
+    @staticmethod
+    def moved(old, new):
+        '''
+        Use some algorithms and threshold to determine whether the position is moved.
+        '''
+        def haversine(old, new):
+            """An implementation for haversine formula which calculates distance between
+            coordinates.
+
+            Arguments:
+                old {Position} -- Old position
+                new {Position} -- New position
+
+            Returns:
+                float -- Distance for two coordintates. (Meters)
+            """
+            lng1 = radians(float(old.longitude))
+            lat1 = radians(float(old.latitude))
+            lng2 = radians(float(new.longitude))
+            lat2 = radians(float(new.latitude))
+
+            dlng = lng2 - lng1
+            dlat = lat2 - lat1
+            a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlng/2)**2
+            c = 2 * asin(sqrt(a))
+            r = 6371
+            distance = c * r * 1000
+            print(f'Distance between old and new: {distance}m.')
+            return distance
+        if old is None:
+            return False
+        if haversine(old, new) > THRESHOLD:
+            return True
+        return False
 
 # class ClientInterface(object):
 #     '''
@@ -92,61 +126,35 @@ class Position(object):
 #         self.skt.send(msg.encode('utf-8'))
 
 
-def moved(old, new):
-    '''
-    Use some algorithms and threshold to determine whether the position is moved.
-    '''
-    def haversine(old, new):
-        """An implementation for haversine formula which calculates distance between
-        coordinates.
+class DB(object):
+    @staticmethod
+    def insert_position(db, data):
+        def inserted_format(data):
+            form = {}
+            form['device'] = data['device']
+            form['data'] = {}
+            form['data']['time'] = data['time']
+            form['data']['position'] = data['position']
+            return form
+        data = inserted_format(data)
+        print('Inserting: ', data)
+        query = {'device': data['device']}
+        collection = db['timeline']
+        device = collection.find_one(query)
+        if device is None:
+            collection.insert_one(data)
+        else:
+            if not isinstance(device['data'], list):
+                device['data'] = [device['data']]
+            device['data'].append(data['data'])
+            collection.replace_one(query, device)
 
-        Arguments:
-            old {Position} -- Old position
-            new {Position} -- New position
-
-        Returns:
-            float -- Distance for two coordintates. (Meters)
-        """
-        lng1 = radians(float(old.longitude))
-        lat1 = radians(float(old.latitude))
-        lng2 = radians(float(new.longitude))
-        lat2 = radians(float(new.latitude))
-
-        dlng = lng2 - lng1
-        dlat = lat2 - lat1
-        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlng/2)**2
-        c = 2 * asin(sqrt(a))
-        r = 6371
-        distance = c * r * 1000
-        print(f'Distance between old and new: {distance}m.')
-        return distance
-    if old is None:
-        return False
-    if haversine(old, new) > THRESHOLD:
-        return True
-    return False
-
-
-def insert_position(db, data):
-    def inserted_format(data):
-        form = {}
-        form['device'] = data['device']
-        form['data'] = {}
-        form['data']['time'] = data['time']
-        form['data']['position'] = data['position']
-        return form
-    data = inserted_format(data)
-    print('Inserting: ', data)
-    query = {'device': data['device']}
-    collection = db['timeline']
-    device = collection.find_one(query)
-    if device is None:
-        collection.insert_one(data)
-    else:
-        if not isinstance(device['data'], list):
-            device['data'] = [device['data']]
-        device['data'].append(data['data'])
-        collection.replace_one(query, device)
+    @staticmethod
+    def get_history(db):
+        collection = db['timeline']
+        query = {'device': 'ARDUINO'}
+        obj = collection.find_one(query)
+        return obj['data']
 
 
 def main():
@@ -199,12 +207,13 @@ def main():
         print(f'Send time: {rcv_json["time"]}')
 
         if rcv_json['device'] == 'ARDUINO':
-            insert_position(db, rcv_json)
+            DB.insert_position(db, rcv_json)
             pos = Position(rcv_json['position'])
             print(f'Position: 緯度{pos.latitude} 經度{pos.longitude}')
-            if moved(current_pos, pos):
+            if Position.moved(current_pos, pos):
                 pos.moved = True
             current_pos = pos
+
         elif rcv_json['device'] == 'PHONE':
             if rcv_json['request'] == 'START':
                 print('Receiving START from phone!')
@@ -213,6 +222,7 @@ def main():
                 msg = common.get_initial_msg('SERVER')
                 msg_str = json.dumps(msg) + '\n'
                 client_skt.send(msg_str.encode())
+
             elif rcv_json['request'] == 'GET':
                 print('Receiving GET from phone!')
                 if current_pos is not None:
@@ -221,6 +231,15 @@ def main():
                     msg_str = json.dumps(msg) + '\n'
                     print(f'Sending {json.dumps(msg, indent=4)} to phone...')
                     client_skt.send(msg_str.encode())
+
+            elif rcv_json['request'] == 'HISTORY':
+                print('Receiving HISTORY from phone!')
+                msg = common.get_initial_msg('SERVER')
+                msg['history'] = DB.get_history(db)
+                msg_str = json.dumps(msg) + '\n'
+                print(f'Sending {json.dumps(msg, indent=4)} to phone')
+                client_skt.send(msg_str.encode())
+
             elif rcv_json['request'] == 'STOP':
                 print('Receiving STOP from phone!')
                 msg = common.get_initial_msg('SERVER')

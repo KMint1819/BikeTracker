@@ -11,6 +11,14 @@
         android:text="@string/position"
         android:textSize="@dimen/home_textSize" />
 
+
+    <Button
+        android:id="@+id/btn_clear"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:text="@string/btn_clear" />
+
     <TextView
         android:id="@+id/txt_position"
         android:layout_width="match_parent"
@@ -19,13 +27,6 @@
         android:layout_toStartOf="@id/btn_clear"
         android:layout_toEndOf="@id/_position"
         android:padding="16dp" />
-
-    <Button
-        android:id="@+id/btn_clear"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:text="@string/btn_clear" />
 
     <fragment
         android:id="@+id/map"

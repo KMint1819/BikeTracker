@@ -32,7 +32,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends MFragment {
     private static final String TAG = "HomeFragment";
     private TextView textPosition = null;
     private TextView statusBar = null;
@@ -43,9 +43,7 @@ public class HomeFragment extends Fragment {
     //
     private String ip;
     private int port;
-    private Socket socket = null;
-    private BufferedReader reader = null;
-    private BufferedWriter writer = null;
+
     private boolean startSign = false;
     private Thread funcThread = null;
     private Map map = null;
@@ -135,11 +133,11 @@ public class HomeFragment extends Fragment {
         @SuppressLint("DefaultLocale")
         @Override
         public void run() {
-            connect();
+            connect(ip, port);
             startRequest();
             JsonObject rcv_obj;
             int idx = 0;
-            while (connect() && startSign) {
+            while (connect(ip, port) && startSign) {
                 GetRequestExe getRequestExe = new GetRequestExe();
                 Thread t = new Thread(getRequestExe);
                 Thread timer = new Thread(new Timer(1000));
@@ -211,6 +209,7 @@ public class HomeFragment extends Fragment {
         @Override
         public void run() {
             textPosition.setText(String.format("%d. (%s, %s)", idx++, longitude, latitude));
+            map.clearMarker();
             map.newMarker(latlng);
             if (bikeMoved) {
                 if(firstMoved != null) {
@@ -228,26 +227,7 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    private boolean connect() {
-        Log.i(TAG, "Connecting to " + ip + ":" + port);
-        try {
-            socket = new Socket(ip, port);
-        } catch (IOException e) {
-            Log.e(TAG, "Cannot connect!");
-            Log.e(TAG, e.toString());
-            return false;
-        }
-        Log.i(TAG, "Successfully connected!");
-        try {
-            reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-            writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            e.printStackTrace();
 
-        }
-        Log.i(TAG, "IO stream created successfully!");
-        return true;
-    }
 
     private void startRequest() {
         Log.i(TAG, "Requesting start request...");
@@ -280,57 +260,7 @@ public class HomeFragment extends Fragment {
         });
     }
 
-//    private class stopRequest implements Runnable {
-//        @Override
-//        public void run() {
-//            Log.i(TAG, "Requesting stop request...");
-//            try {
-//                String request = new Request(RequestType.STOP).toJson();
-//                writer.write(request);
-//                writer.flush();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//            String rcv_str = "";
-//            while (!startSign) {
-//                try {
-//                    socket.setSoTimeout(3000);
-//                    rcv_str = reader.readLine();
-//                } catch (java.net.SocketTimeoutException e) {
-//                    Log.e(TAG, "STOP timeout!");
-//                    e.printStackTrace();
-//                    continue;
-//                } catch (IOException e) {
-//                    Log.e(TAG, String.format("Received string <%s> error!", rcv_str));
-//                    e.printStackTrace();
-//                    continue;
-//                }
-//                if (rcv_str != null && !rcv_str.equals("")) {
-//                    break;
-//                }
-//            }
-//            Log.i(TAG, "STOP receives " + rcv_str);
-//        }
-//    }
 
-
-
-    private class Timer implements Runnable {
-        int timeout;
-
-        Timer(int timeout) {
-            this.timeout = timeout;
-        }
-
-        @Override
-        public void run() {
-            try {
-                Thread.sleep(timeout);
-            } catch (InterruptedException e) {
-                Log.i(TAG, "Timer interrupted");
-            }
-        }
-    }
 
     private class GetRequestExe implements Runnable {
         private JsonObject jsonObject = null;

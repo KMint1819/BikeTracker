@@ -4,15 +4,18 @@ import com.google.gson.Gson;
 
 import java.time.LocalDateTime;
 
-public class Request {
+class Request {
     private String device = "PHONE";
     private Time time = null;
     private String request;
 
-    public Request(RequestType requestType) {
+    Request(RequestType requestType) {
         switch (requestType) {
             case GET:
                 request = "GET";
+                break;
+            case HISTORY:
+                request = "HISTORY";
                 break;
             case START:
                 request = "START";
@@ -24,27 +27,28 @@ public class Request {
         time = new Time();
     }
 
-    public String toJson() {
+    String toJson() {
         return new Gson().toJson(this);
     }
 }
 
 enum RequestType {
     GET,
+    HISTORY,
     START,
     STOP
 };
 
 
 class Time {
-    public int year;
-    public int month;
-    public int day;
-    public int hour;
-    public int minute;
-    public int second;
+    int year;
+    int month;
+    int day;
+    int hour;
+    int minute;
+    int second;
 
-    public Time() {
+    Time() {
         LocalDateTime now = LocalDateTime.now();
         year = now.getYear();
         month = now.getMonthValue();

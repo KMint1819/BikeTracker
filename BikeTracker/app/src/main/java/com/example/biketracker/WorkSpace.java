@@ -49,7 +49,7 @@ public class WorkSpace extends AppCompatActivity {
     private void setViewPager(ViewPager viewPager) {
         SectionsPagerAdapter adapter = new SectionsPagerAdapter(getSupportFragmentManager());
         adapter.add(new HomeFragment(ip, port), "Home");
-        adapter.add(new HistoryFragment(), "History");
+        adapter.add(new HistoryFragment(ip, port), "History");
         viewPager.setAdapter(adapter);
     }
 }
