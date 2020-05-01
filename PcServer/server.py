@@ -46,13 +46,16 @@ class Position(object):
         """
         self.longitude = data['longitude']
         self.latitude = data['latitude']
-
+        self.status = ''
         if 'moved' in data:
             self.moved = bool(data['moved'])
         else:
             self.moved = False
 
-    def to_json(self):
+    def setStatus(self, flag):
+        self.status = flag
+
+    def toJson(self):
         """Return position as json format
 
         Returns:
@@ -62,6 +65,7 @@ class Position(object):
         obj['longitude'] = self.longitude
         obj['latitude'] = self.latitude
         obj['moved'] = int(self.moved)
+        obj['status'] = str(self.status)
         return obj
 
     @staticmethod
@@ -99,36 +103,11 @@ class Position(object):
             return True
         return False
 
-# class ClientInterface(object):
-#     '''
-#     A wrapper for client socket and I/O stream with timer.
-#     '''
-
-#     def __init__(self, skt):
-#         self._timeout = False
-#         self.skt = skt
-#         self.rcv_str = ''
-
-#     def recv(self, timeout):
-#         """Receives from socket with timer
-
-#         Arguments:
-#             timeout {int} -- Timeout second
-#         """
-#         self.rcv_str = self.skt.recv(2048).decode('utf-8')
-
-#     def send(self, msg):
-#         """Encodes message and send.
-
-#         Arguments:
-#             msg {str} -- Message without encoding.
-#         """
-#         self.skt.send(msg.encode('utf-8'))
-
 
 class DB(object):
+
     @staticmethod
-    def insert_position(db, data):
+    def insertPosition(db, data):
         def inserted_format(data):
             form = {}
             form['device'] = data['device']
@@ -150,11 +129,13 @@ class DB(object):
             collection.replace_one(query, device)
 
     @staticmethod
-    def get_history(db):
+    def getHistory(db):
         collection = db['timeline']
-        query = {'device': 'ARDUINO'}
+        query = {'device': 'SERVER'}
         obj = collection.find_one(query)
-        return obj['data']
+        if 'data' in obj:
+            return obj['data']
+        return []
 
 
 def main():
@@ -181,13 +162,14 @@ def main():
         except OSError:
             PORT += 1
     current_pos = None
+    status = 'END'
     while True:
         print('-'*50)
         client_skt, adr = s.accept()
         print(f'{adr} is connected...')
         rcv_json = None
         try:
-            client_skt.settimeout(3.0)
+            client_skt.settimeout(10.0)
             rcv_str = client_skt.recv(2048).decode('utf-8')
             print(f'Client sent: <{rcv_str}>')
             rcv_json = json.loads(rcv_str)
@@ -207,27 +189,36 @@ def main():
         print(f'Send time: {rcv_json["time"]}')
 
         if rcv_json['device'] == 'ARDUINO':
-            DB.insert_position(db, rcv_json)
             pos = Position(rcv_json['position'])
             print(f'Position: 緯度{pos.latitude} 經度{pos.longitude}')
             if Position.moved(current_pos, pos):
                 pos.moved = True
             current_pos = pos
+            msg = common.get_initial_msg('SERVER')
+            print('ARDUINO, status: ', status)
+            if status == 'MOVING':
+                current_pos.setStatus(status)
+                msg['position'] = current_pos.toJson()
+                DB.insertPosition(db, msg)
 
         elif rcv_json['device'] == 'PHONE':
             if rcv_json['request'] == 'START':
                 print('Receiving START from phone!')
+                status = 'STOP'
+                msg = common.get_initial_msg('SERVER')
                 if current_pos is not None:
                     current_pos.moved = False
-                msg = common.get_initial_msg('SERVER')
+                    current_pos.setStatus(status)
+                    msg['position'] = current_pos.toJson()
+                    DB.insertPosition(db, msg)
                 msg_str = json.dumps(msg) + '\n'
                 client_skt.send(msg_str.encode())
 
             elif rcv_json['request'] == 'GET':
                 print('Receiving GET from phone!')
+                msg = common.get_initial_msg('SERVER')
                 if current_pos is not None:
-                    msg = common.get_initial_msg('SERVER')
-                    msg['position'] = current_pos.to_json()
+                    msg['position'] = current_pos.toJson()
                     msg_str = json.dumps(msg) + '\n'
                     print(f'Sending {json.dumps(msg, indent=4)} to phone...')
                     client_skt.send(msg_str.encode())
@@ -235,16 +226,23 @@ def main():
             elif rcv_json['request'] == 'HISTORY':
                 print('Receiving HISTORY from phone!')
                 msg = common.get_initial_msg('SERVER')
-                msg['history'] = DB.get_history(db)
+                msg['history'] = DB.getHistory(db)
                 msg_str = json.dumps(msg) + '\n'
                 print(f'Sending {json.dumps(msg, indent=4)} to phone')
                 client_skt.send(msg_str.encode())
 
-            elif rcv_json['request'] == 'STOP':
-                print('Receiving STOP from phone!')
+            elif rcv_json['request'] == 'END':
+                print('Receiving END from phone!')
                 msg = common.get_initial_msg('SERVER')
+                status = 'FIRST'
+                if current_pos is not None:
+                    current_pos.setStatus(status)
+                    msg['position'] = current_pos.toJson()
+                    DB.insertPosition(db, msg)
+                status = 'MOVING'
                 msg_str = json.dumps(msg) + '\n'
                 client_skt.send(msg_str.encode())
+                print('Status: ', status)
         else:
             print('Format error! Check the documentation.')
 
