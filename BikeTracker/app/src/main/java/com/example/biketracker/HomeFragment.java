@@ -34,6 +34,7 @@ import java.util.Objects;
 
 public class HomeFragment extends MFragment {
     private static final String TAG = "HomeFragment";
+    private View view;
     private TextView textPosition = null;
     private TextView statusBar = null;
     private TextView img_mapCover = null;
@@ -66,7 +67,7 @@ public class HomeFragment extends MFragment {
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
+        view = inflater.inflate(R.layout.fragment_home, container, false);
         textPosition = view.findViewById(R.id.txt_position);
         statusBar = view.findViewById(R.id.server_status_bar);
         statusColor = view.findViewById(R.id.status_color);
@@ -102,21 +103,17 @@ public class HomeFragment extends MFragment {
                 textPosition.setText("");
                 statusBar.setText(R.string.server_not_ready);
                 statusColor.setBackgroundColor(Color.GREEN);
-                map.clear();
+                map.clear.run();
                 img_mapCover.setVisibility(View.VISIBLE);
                 funcThread.interrupt();
 //                Thread t = new Thread(new stopRequest());
 //                t.start();
-//                try {
-//                    t.join();
-//                } catch (java.lang.InterruptedException e){
-//                    e.printStackTrace();
 //                }
             } else {
                 Log.i(TAG, "Trying to start funcThread...");
                 bikeMoved = false;
                 startSign = true;
-                btnStart.setText(R.string.btn_stop);
+                btnStart.setText(R.string.btn_end);
                 img_mapCover.setVisibility(View.INVISIBLE);
                 funcThread = new Thread(mainFunc);
                 funcThread.start();
@@ -140,7 +137,7 @@ public class HomeFragment extends MFragment {
             while (connect(ip, port) && startSign) {
                 GetRequestExe getRequestExe = new GetRequestExe();
                 Thread t = new Thread(getRequestExe);
-                Thread timer = new Thread(new Timer(1000));
+                Thread timer = new Thread(new Timer(3000));
                 t.start();
                 timer.start();
                 while (timer.isAlive()) {
@@ -153,7 +150,7 @@ public class HomeFragment extends MFragment {
                     t.interrupt();
                     timer.interrupt();
                     Log.d(TAG, "GET request timeout!");
-                    textPosition.setText(String.format("%d -------TIMEOUT-------", idx++));
+//                    textPosition.setText(String.format("%d -------TIMEOUT-------", idx++));
                     continue;
                 }
                 timer.interrupt();
@@ -181,6 +178,7 @@ public class HomeFragment extends MFragment {
                     }
                 }
             }
+            endRequest();
             Log.i(TAG, "Leaving mainFunc...");
         }
     };
@@ -259,7 +257,30 @@ public class HomeFragment extends MFragment {
             }
         });
     }
-
+    private void endRequest() {
+        Log.i(TAG, "Requesting end request...");
+        try {
+            String request = new Request(RequestType.END).toJson();
+            writer.write(request);
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String rcv_str = "";
+        while (startSign) {
+            try {
+                rcv_str = reader.readLine();
+            } catch (IOException e) {
+                Log.e(TAG, String.format("Received string <%s> error!", rcv_str));
+                e.printStackTrace();
+                continue;
+            }
+            if (rcv_str != null && !rcv_str.equals("")) {
+                break;
+            }
+        }
+        Log.i(TAG, "END receives " + rcv_str);
+    }
 
 
     private class GetRequestExe implements Runnable {
@@ -290,6 +311,11 @@ public class HomeFragment extends MFragment {
                     Log.d(TAG, "Invalid GET response: " + rcv_str);
                 } else {
                     break;
+                }
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
             Log.d(TAG, "GET Receives " + rcv_str);

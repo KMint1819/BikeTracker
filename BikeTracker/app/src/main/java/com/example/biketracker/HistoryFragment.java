@@ -124,16 +124,17 @@ public class HistoryFragment extends MFragment {
     class RcvData implements Comparable<RcvData> {
         LatLng latlng;
         Calendar time;
+        String status;
 
         public RcvData(JsonObject data) throws ParseException {
             this.latlng = parsePosition(data.getAsJsonObject("position"));
             this.time = parseTime(data.getAsJsonObject("time"));
-
         }
 
         private LatLng parsePosition(JsonObject position) {
             float longitude = Float.parseFloat(position.getAsJsonPrimitive("longitude").getAsString());
             float latitude = Float.parseFloat(position.getAsJsonPrimitive("latitude").getAsString());
+            status = position.getAsJsonPrimitive("status").getAsString();
             return new LatLng(latitude, longitude);
         }
 
@@ -169,8 +170,14 @@ public class HistoryFragment extends MFragment {
             for (int i = 0; i < rcvDatas.size(); ++i) {
                 Log.d(TAG, "rcvDatas.get(i).latlng = " + rcvDatas.get(i).latlng);
                 Log.d(TAG, "rcvDatas.get(i).time = " + rcvDatas.get(i).time);
-                map.newMarker(rcvDatas.get(i).latlng);
-                map.addTrack(rcvDatas.get(i).latlng);
+                Log.d(TAG, "rcvDatas.get(i).status = " + rcvDatas.get(i).status);
+//                map.newMarker(rcvDatas.get(i).latlng);
+                if (rcvDatas.get(i).status.equals("FIRST") || rcvDatas.get(i).status.equals("STOP")) {
+                    map.newMarker(rcvDatas.get(i).latlng);
+                }
+                if(!rcvDatas.get(i).status.equals("STOP")) {
+                    map.addTrack(rcvDatas.get(i).latlng);
+                }
             }
         }
     }
@@ -182,6 +189,7 @@ public class HistoryFragment extends MFragment {
         @Override
         public void run() {
             Log.d(TAG, "Sending history request...");
+            Objects.requireNonNull(getActivity()).runOnUiThread(map.clear);
             try {
                 String request = new Request(RequestType.HISTORY).toJson();
                 Log.i(TAG, "Sending:\n" + request);

@@ -37,13 +37,16 @@ public class Map implements OnMapReadyCallback {
         return mapReady;
     }
 
-    public void clear() {
-        mMap.clear();
-        spots.clear();
-    }
+    Runnable clear = new Runnable() {
+        @Override
+        public void run() {
+            mMap.clear();
+            spots.clear();
+        }
+    };
 
     public void addTrack(LatLng pre, LatLng now) {
-        Log.i(TAG, String.format("Adding first polyline: (%f, %f), (%f, %f)",
+        Log.i(TAG, String.format("Adding two polyline: (%f, %f), (%f, %f)",
                 pre.latitude, pre.longitude,
                 now.latitude, now.longitude));
         mMap.addPolyline(new PolylineOptions()
@@ -69,11 +72,13 @@ public class Map implements OnMapReadyCallback {
 
         }
     }
+
     public void clearMarker() {
         if (curMarker != null) {
             curMarker.remove();
         }
     }
+
     public void newMarker(LatLng latlng) {
         if (mMap == null) {
             Log.e(TAG, "new Marker mMap is null!");

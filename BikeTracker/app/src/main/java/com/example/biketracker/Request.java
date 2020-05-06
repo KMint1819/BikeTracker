@@ -20,8 +20,8 @@ class Request {
             case START:
                 request = "START";
                 break;
-            case STOP:
-                request = "STOP";
+            case END:
+                request = "END";
                 break;
         }
         time = new Time();
@@ -36,7 +36,7 @@ enum RequestType {
     GET,
     HISTORY,
     START,
-    STOP
+    END
 };
 
 

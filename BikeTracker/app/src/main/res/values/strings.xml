@@ -10,7 +10,7 @@
     <string name="server_not_ready">Not connected to server…</string>
     <string name="server_ready">Connected</string>
     <string name="btn_start">Start</string>
-    <string name="btn_stop">Stop</string>
+    <string name="btn_end">End</string>
     <string name="txt_mapCover">Touch to start...</string>
 <!--    History fragment-->
     <string name="btn_update">UPDATE</string>
