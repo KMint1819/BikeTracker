@@ -1,6 +1,3 @@
-# Project Slide
-https://docs.google.com/presentation/d/1rhiyHuJBUHd2zr5PsOnRjZU6bZsIwiP2GltipoE7IJ4/edit?fbclid=IwAR1vS-l-snuMYF4c9KJSDdL5u5psn0LHU2Tl2OGnc6CUnso7STWhYJkCS6I#slide=id.g13c463fa2a257a66_418
-
 # BikeTracker
 A little module for tracking objects(assuming bicycles) and prevent them from been stolen.
 
